@@ -3,7 +3,7 @@ import numpy as np
 
 important_words =['by','.','with','2002','the','of','-0500','to','I','a',
                   'that','it','.>','is','+0100','.Received:','ESMTP','id',
-                  'by','Linux','and','.Content-Type','.Sender:','.Errors-To:',
+                  'Linux','and','.Content-Type','.Sender:','.Errors-To:',
                   '.X-Mailman-Version:','.Precedence:','bulk', '.List-Id',
                   '.X-Beenthere', '(Postfix)', 'using', '.Delivered-To:',
                   'or', '<jm@localhost>;', '-0400', 'IMAP', '(fethmail-5.9.0)',
@@ -11,6 +11,14 @@ important_words =['by','.','with','2002','the','of','-0500','to','I','a',
                   '-0700', '[127.0.0.1]', 'SMTP','(jalapeno','in',
                   '.Content-Transfer-Encoding:','will', 'your','email','Microsoft',
                   'its','>','our','want', '<a', '.<font']
+
+important_domains = [
+     'xent.com', 'jmason.org', 'linux.ie', 'lists.sourceforge.net',
+     'freshrpms.net', 'unknown', 'redhat.com', 'hotmail.com', 'yahoo.com',
+     'perl.org', 'returns.groups.yahoo.com', 'aol.com', 'msn.com',
+     'insurancemail.net', 'taint.org', 'insiq.us', 'python.org',
+     'petting-zoo.net', 'securityfocus.com', 'comcast.net', 'pobox.com',
+     'btamail.net.cn', 'eudoramail.com']
 
 def replace(df):
     df["Message"] = df["Message"].str.replace(pat=r"[,\n]", repl=" ", regex=True)
@@ -24,7 +32,7 @@ def extract_domain(df, splitted=False):
     df["email"] =  df["s_Message"].apply(lambda x: x[np.argmax(np.char.lower(np.array(x)) == "from") + 1])
     return df
 
-def introductory_pipeline(df, important_words=important_words):
+def introductory_pipeline(df, important_words=important_words,important_domains=important_domains):
     df = extract_domain(df)
     df["domain"] = df["email"].str.split("@").str[1]
     df.drop("email", axis=1, inplace=True)
@@ -55,6 +63,14 @@ def introductory_pipeline(df, important_words=important_words):
         ], 
         axis=1
     )
+    
+    important_domains = pd.DataFrame(important_domains, columns=["domain"])
+    important_domains["pointer"] = 1
+
+    counted_words.loc[counted_words["domain"].isna(), "domain"] = "unknown"
+    counted_words = counted_words.merge(important_domains, how="left", on="domain")
+    counted_words.loc[counted_words["pointer"].isna(), "domain"] = "unimportant"
+    counted_words.drop("pointer", axis=1, inplace=True)
 
     return counted_words
     
