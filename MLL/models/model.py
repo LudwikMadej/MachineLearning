@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-@ABC
-class Model:
+class Model(ABC):
     def __init__(self, random_state=None):
         self.random_state = random_state
 

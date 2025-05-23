@@ -1,5 +1,20 @@
 import numpy as np
 
+def fetch_metric(metric_name, *args):
+    if metric_name in ['l2', 'euclidean']:
+        return euclidean
+
+    if metric_name in ['l1', 'manhattan']:
+        return manhattan
+
+    if metric_name == 'minkowski':
+        return generate_minskowski(*args)
+
+    if metric_name == 'cosine':
+        return cosine
+
+    return None
+
 def euclidean(x, y, weights=None, axis=None):
     z = np.power(x - y, 2)
     if weights:
@@ -17,6 +32,14 @@ def minkowski(x, y, p=2, weights=None, axis=None):
     if weights:
         z = z * weights
     return np.sum(z) if not axis else np.sum(z, axis=axis)
+
+def generate_minskowski(p=2, weights=None, axis=None):
+    def minkowski_(x, y):
+        z = np.power(np.abs(x - y), p)
+        if weights:
+            z = z * weights
+        return np.sum(z) if not axis else np.sum(z, axis=axis)
+    return minkowski_
 
 def cosine(x, y, axis=None):
     if axis:
